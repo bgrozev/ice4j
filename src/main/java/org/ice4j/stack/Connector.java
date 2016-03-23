@@ -205,11 +205,11 @@ class Connector
                     try
                     {
                         localSock.receive(packet);
+                        break;
                     }
                     catch (SocketTimeoutException ste)
                     {
                         logger.warning("Just a timeout, try again.");
-                        continue;
                     }
                 }
 
