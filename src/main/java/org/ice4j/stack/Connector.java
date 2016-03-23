@@ -200,7 +200,18 @@ class Connector
                     }
                 }
 
-                localSock.receive(packet);
+                while (running)
+                {
+                    try
+                    {
+                        localSock.receive(packet);
+                    }
+                    catch (SocketTimeoutException ste)
+                    {
+                        logger.warning("Just a timeout, try again.");
+                        continue;
+                    }
+                }
 
                 //get lost if we are no longer running.
                 if(!running)
