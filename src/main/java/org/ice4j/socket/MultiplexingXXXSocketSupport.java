@@ -17,6 +17,8 @@
  */
 package org.ice4j.socket;
 
+import org.ice4j.*;
+
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.*;
@@ -40,6 +42,15 @@ abstract class MultiplexingXXXSocketSupport
      */
     private static final Logger logger
         = Logger.getLogger(MultiplexingXXXSocketSupport.class.getName());
+
+    /**
+     * Whether compound RTCP packets received from the network should be split
+     * and accepted as a sequence of separate RTCP packets.
+     */
+    private static final boolean SPLIT_COMPOUND_RTCP
+        = StackProperties.getBoolean(
+                StackProperties.SPLIT_COMPOUND_RTCP_PNAME,
+                false);
 
     /**
      * Initializes a new <tt>DatagramPacket</tt> instance which is a clone of a
@@ -642,7 +653,24 @@ abstract class MultiplexingXXXSocketSupport
 
                 // The caller received from the network. Copy/add the packet to
                 // the receive list of the sockets which accept it.
-                acceptBySocketsOrThis(c);
+                // If the packet an compound RTCP packets and the configuration
+                // allows it, split it into a sequence of individual RTCP
+                // packets. The purpose of this is to allow the individual
+                // packets to be accepted (or not) separately.
+                DatagramPacket[] pkts;
+                if (SPLIT_COMPOUND_RTCP
+                        && (pkts = RtcpDemuxPacketFilter
+                                    .splitCompoundRtcpPacket(c)) != null)
+                {
+                    for (DatagramPacket pkt : pkts)
+                    {
+                        acceptBySocketsOrThis(pkt);
+                    }
+                }
+                else
+                {
+                    acceptBySocketsOrThis(c);
+                }
             }
             finally
             {

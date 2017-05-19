@@ -238,6 +238,9 @@ public class StackProperties
     public static final String HARVESTING_TIMEOUT
             = "org.ice4j.ice.harvest.HARVESTING_TIMEOUT";
 
+    public static final String SPLIT_COMPOUND_RTCP_PNAME
+            = "org.ice4j.ice.socket.SPLIT_COMPOUND_RTCP";
+
     /**
      * Returns the String value of the specified property (minus all
      * encompassing whitespaces)and null in case no property value was mapped

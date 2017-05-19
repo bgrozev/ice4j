@@ -63,16 +63,16 @@ public class RtcpDemuxPacketFilter
      */
     public static boolean isRtcpPacket(DatagramPacket p)
     {
-        int len = p.getLength();
+        return isRtcpPacket(p.getData(), p.getOffset(), p.getLength());
+    }
 
+    public static boolean isRtcpPacket(byte[] buf, int off, int len)
+    {
         if (len >= 4) //minimum RTCP message length
         {
-            byte[] data = p.getData();
-            int off = p.getOffset();
-
-            if (((data[off] & 0xc0) >> 6) == 2) //RTP/RTCP version field
+            if (((buf[off] & 0xc0) >> 6) == 2) //RTP/RTCP version field
             {
-                int pt = data[off + 1] & 0xff;
+                int pt = buf[off + 1] & 0xff;
 
                 return (200 <= pt && pt <= 211);
             }
@@ -91,4 +91,68 @@ public class RtcpDemuxPacketFilter
         return isRtcpPacket(p);
     }
 
+    public static DatagramPacket[] splitCompoundRtcpPacket(DatagramPacket p)
+    {
+        if (!isRtcpPacket(p))
+        {
+            return null;
+        }
+
+        byte[] buf = p.getData();
+        int off = p.getOffset();
+        int len = p.getLength();
+
+        int count = 0;
+        int l;
+        while( (l = getLengthInBytes(buf, off, len)) >= 0)
+        {
+            count++;
+            off += l;
+            len -= l;
+        }
+
+        if (count <= 1)
+        {
+            return null;
+        }
+
+        off = p.getOffset();
+        len = p.getLength();
+        DatagramPacket[] pkts = new DatagramPacket[count];
+        for (int i = 0; i < count; i++)
+        {
+            byte[] pktBuf = new byte[getLengthInBytes(buf, off, len)];
+            pkts[i] = new DatagramPacket(pktBuf, 0, pktBuf.length);
+            pkts[i].setSocketAddress(p.getSocketAddress());
+
+            off += pktBuf.length;
+            len -= pktBuf.length;
+        }
+
+        return pkts;
+    }
+
+    /**
+     * Returns the length in bytes of the RTCP packet contained in <tt>buf</tt>
+     * at offset <tt>off</tt>. Assumes that <tt>buf</tt> is valid at least until
+     * index <tt>off</tt>+3.
+     * @return the length in bytes of the RTCP packet contained in <tt>buf</tt>
+     * at offset <tt>off</tt>.
+     */
+    private static int getLengthInBytes(byte[] buf, int off, int len)
+    {
+        if (!isRtcpPacket(buf, off, len))
+        {
+            return -1;
+        }
+
+        int lengthInWords = ((buf[off + 2] & 0xFF) << 8) | (buf[off + 3] & 0xFF);
+        int lengthInBytes = (lengthInWords + 1) * 4;
+        if (len < lengthInBytes)
+        {
+            return -1;
+        }
+
+        return lengthInBytes;
+    }
 }
