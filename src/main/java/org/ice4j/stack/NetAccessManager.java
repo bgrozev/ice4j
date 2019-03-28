@@ -29,7 +29,7 @@ import java.util.logging.Logger; // Disambiguation
 import org.ice4j.*;
 import org.ice4j.message.*;
 import org.ice4j.socket.*;
-import org.jitsi.javautils.*;
+import org.jitsi.utils.*;
 
 /**
  * Manages <tt>Connector</tt>s and <tt>MessageProcessingTask</tt> execution and
@@ -146,7 +146,7 @@ class NetAccessManager
      */
     private final QueueStatistics queueStatistics
         = logger.isLoggable(Level.FINEST)
-        ? new QueueStatistics(this.toString())
+        ? QueueStatistics.get(getClass().getSimpleName())
         : null;
 
     /**

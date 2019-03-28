@@ -20,7 +20,7 @@ package org.ice4j.ice.harvest;
 import org.ice4j.*;
 import org.ice4j.attribute.*;
 import org.ice4j.message.*;
-import org.jitsi.javautils.*;
+import org.jitsi.utils.*;
 
 import java.io.*;
 import java.net.*;
@@ -456,7 +456,7 @@ public abstract class AbstractUdpListener
             this.remoteAddress = remoteAddress;
             if (logger.isLoggable(Level.FINEST))
             {
-                queueStatistics = new QueueStatistics(
+                queueStatistics = QueueStatistics.get(
                     "SinglePort" + remoteAddress.toString().replace('/', '-'));
             }
             else
@@ -480,7 +480,7 @@ public abstract class AbstractUdpListener
                     logger.info("Dropping a packet because the queue is full.");
                     if (queueStatistics != null)
                     {
-                        queueStatistics.remove(System.currentTimeMillis());
+                        queueStatistics.drop(System.currentTimeMillis());
                     }
                     queue.poll();
                 }

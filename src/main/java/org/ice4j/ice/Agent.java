@@ -32,7 +32,7 @@ import org.ice4j.ice.harvest.*;
 import org.ice4j.stack.*;
 import org.ice4j.util.*;
 import org.ice4j.util.Logger; // Disambiguation.
-import org.jitsi.javautils.*;
+import org.jitsi.utils.*;
 
 /**
  * An <tt>Agent</tt> could be described as the main class (i.e. the chef
